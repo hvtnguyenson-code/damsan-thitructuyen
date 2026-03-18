@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Làm Bài Kiểm Tra - Đam San V2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; user-select: none; }
+        .header { background: #1a73e8; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .header h2 { margin: 0; font-size: 18px; }
+        .timer { font-size: 20px; font-weight: bold; background: #e74c3c; padding: 5px 15px; border-radius: 20px; }
+        .container { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        #login-screen { text-align: center; padding: 40px 20px; }
+        #login-screen input { width: 100%; max-width: 300px; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        #login-screen button { background: #1a73e8; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        #login-screen button:disabled { background: #95a5a6; cursor: not-allowed; }
+        
+        .phan-title { color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px; margin-top: 30px; }
+        
+        .question-box { background: #fafafa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee; display: block !important; clear: both !important; overflow: hidden; position: relative; width: 100%; box-sizing: border-box; }
+        .question-content { font-weight: bold; margin-bottom: 10px; font-size: 15px; }
+        .question-content img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+        .question-content table { width: 100%; border-collapse: collapse; margin: 10px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .question-content th, .question-content td { border: 1px solid #7f8c8d; padding: 8px; text-align: center; font-weight: normal; }
+        .question-content th { background-color: #ecf0f1; font-weight: bold; }
+        
+        .options-p1 label, .options-p1 p { margin: 0; padding: 0; display: inline; }
+        .radio-option { display: flex; align-items: flex-start; padding: 10px; background: white; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .radio-option:hover { background: #e8f0fe; }
+        .radio-option input[type="radio"] { margin-right: 10px; margin-top: 3px; transform: scale(1.2); cursor: pointer; }
+        .radio-option label { cursor: pointer; width: 100%; font-weight: normal; margin: 0; }
+
+        .table-p2 { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        .table-p2 th, .table-p2 td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        .table-p2 th { background: #f2f2f2; }
+        .table-p2 td.text-left { text-align: left; }
+        .input-p3 { width: 100%; padding: 12px; border: 2px solid #1a73e8; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        .submit-btn { display: block; width: 100%; max-width: 300px; margin: 30px auto; background: #27ae60; color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .submit-btn:disabled { background: #95a5a6; cursor: not-allowed; }
+        
+        #loading { text-align: center; font-size: 18px; color: #555; padding: 50px; display: none; }
+        .warning-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; text-align: center; border: 1px solid #ffeeba; }
+        
+        #alert-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; }
+        .alert-content { background:white; padding:40px; border-radius:10px; text-align:center; max-width:600px; width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height:80vh; overflow-y:auto; }
+        .alert-content h2 { color:#e74c3c; margin-top:0; font-size: 24px; text-transform: uppercase; }
+        .alert-btn { background:#1a73e8; color:white; border:none; padding:12px 30px; font-size:18px; font-weight:bold; border-radius:5px; cursor:pointer; margin-top:20px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2 id="header-title">Hệ Thống Đánh Giá - Học Sinh</h2>
+        <div class="timer" id="time-display">--:--</div>
+    </div>
+    
+    <div id="alert-modal">
+        <div class="alert-content">
+            <h2 id="alert-title">Thông báo</h2>
+            <div id="alert-text" style="font-size:16px;">Nội dung...</div>
+            <button class="alert-btn" onclick="document.getElementById('alert-modal').style.display='none'">Đã Rõ</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="login-screen">
+            <h1 style="color:#1a73e8; margin-bottom: 5px;">ĐĂNG NHẬP PHÒNG THI</h1>
+            <p style="color:#777; margin-bottom: 25px;">Hệ thống V2 - Phân Hệ iOS Hỗ trợ</p>
+            <input type="text" id="maPhong" placeholder="Mã phòng thi (VD: Phòng 1)"><br>
+            <input type="text" id="maHS" placeholder="Số báo danh / Mã Học Sinh"><br>
+            <input type="password" id="pass" placeholder="Mật khẩu (Mặc định: 123456)"><br>
+            <button id="btnDangNhap" onclick="dangNhapVaoPhong()">VÀO PHÒNG THI</button>
+            <p id="login-msg" style="color: red; font-weight: bold; margin-top: 15px;"></p>
+        </div>
+        
+        <div id="loading">⏳ Đang kết nối máy chủ...</div>
+        
+        <div id="exam-screen" style="display: none;">
+            <div class="warning-box">
+                <b>⚠️ LƯU Ý:</b> Hệ thống tự động lưu nháp. Nếu rớt mạng, hãy F5 tải lại trang. Tuyệt đối không chuyển Tab (Số lần vi phạm: <span id="cheat-count" style="color:red; font-weight:bold;">0</span>).
+            </div>
+            <div id="exam-content"></div>
+            <button id="btnNopBai" class="submit-btn" onclick="confirmSubmit()">📥 NỘP BÀI</button>
+        </div>
+        
+        <div id="result-screen" style="display: none; text-align: center; padding: 40px 20px;">
+            <div id="result-content">
+                <h1 style="color: #27ae60;">🎉 NỘP BÀI THÀNH CÔNG!</h1>
+                <p style="font-size: 16px; color: #555;">Hệ thống Máy Chủ đã tiếp nhận và đang xử lý bài làm của em.</p>
+                <p style="font-size: 14px; color: #f39c12; font-style:italic;">(Hãy giữ nguyên màn hình để xem Điểm/Đáp án khi Giám thị công bố)</p>
+            </div>
+            <button class="submit-btn" style="background:#3498db; margin-top:20px; display:none;" id="btnXemDiem" onclick="checkRoomStatus()">🔄 Tải Lại Điểm</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || (e.ctrlKey && e.key === "U")) {
+                e.preventDefault(); showAlert("🚨 CẢNH BÁO", "Hành vi can thiệp đã bị chặn!", true);
+            }
+        });
+        
+        window.onerror = function(message, source, lineno) {
+            let msgBox = document.getElementById("login-msg");
+            if(msgBox) msgBox.innerText = `Lỗi hệ điều hành: ${message}. Vui lòng thử lại!`;
+            let btn = document.getElementById("btnDangNhap");
+            if(btn) { btn.innerText = "VÀO PHÒNG THI"; btn.disabled = false; }
+            return false;
+        };
+
+        // BẠN DÁN LẠI LINK API V2 CỦA BẠN VÀO ĐÂY
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzLMjB0bzUAiEAcloxp4Qxw6_umsZUQ1UCpGcU2YRK_P09TdxDAhPvalenQ0Zi6LDVTA/exec";
+
+        let thongTinHS = {}; let danhSachDe = []; let maDeCuaToi = ""; let answers = {};
+        let exactClientEndTime = 0; let timeRemaining = 0; let timerInterval; let cheatCount = 0; let isSubmitted = false;
+        let roomStatusInterval; let currentStatus = "";
+
+        function showAlert(title, text, isBlocking = false) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-text').innerHTML = text;
+            document.getElementById('alert-modal').style.display = 'flex';
+            if(isBlocking) { document.querySelector('.alert-btn').style.display = 'none'; } 
+            else { document.querySelector('.alert-btn').style.display = 'block'; }
+        }
+
+        function safeHTML(str) {
+            if (!str) return ""; let doc = new DOMParser().parseFromString(str, 'text/html'); return doc.body.innerHTML;
+        }
+
+        // 💥💥💥 THUẬT TOÁN KẾT NỐI MẠNG ĐỜI CŨ (AJAX XHR) - ĐẶC TRỊ BỆNH BẢO MẬT CỦA IPHONE/ZALO
+        function safeFetch(payload) {
+            return new Promise((resolve, reject) => {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", APPS_SCRIPT_URL, true);
+                // Bỏ trắng Header Content-Type để biến nó thành "Simple Request", tránh bị Safari chặn chéo
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200 || xhr.status === 201) {
+                            try { resolve(JSON.parse(xhr.responseText)); } 
+                            catch(e) { reject(new Error("Lỗi đọc dữ liệu từ máy chủ.")); }
+                        } else {
+                            reject(new Error("Máy chủ từ chối kết nối (Mã: " + xhr.status + "). Hãy chắc chắn bạn đang mở bằng link web."));
+                        }
+                    }
+                };
+                xhr.onerror = function() { reject(new Error("Kết nối bị iPhone/Safari chặn (Vui lòng không mở file Tải về offline).")); };
+                xhr.send(JSON.stringify(payload));
+            });
+        }
+
+        function safeGet(actionStr) {
+            return new Promise((resolve, reject) => {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", APPS_SCRIPT_URL + "?action=" + actionStr + "&t=" + new Date().getTime(), true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            try { resolve(JSON.parse(xhr.responseText)); }
+                            catch(e) { reject(new Error("Lỗi phân tích dữ liệu.")); }
+                        } else { reject(new Error("Lỗi mạng.")); }
+                    }
+                };
+                xhr.onerror = function() { reject(new Error("Kết nối bị chặn.")); };
+                xhr.send();
+            });
+        }
+        // 💥💥💥 KẾT THÚC THUẬT TOÁN KẾT NỐI MỚI
+
+        function dangNhapVaoPhong() {
+            const maPhong = document.getElementById("maPhong").value.trim(); 
+            const maHS = document.getElementById("maHS").value.trim(); 
+            const pass = document.getElementById("pass").value.trim();
+            const msg = document.getElementById("login-msg");
+            const btn = document.getElementById("btnDangNhap");
+
+            if (!maPhong || !maHS || !pass) { msg.innerText = "⚠️ Vui lòng nhập đủ thông tin!"; return; }
+            
+            btn.innerText = "⏳ ĐANG KẾT NỐI..."; btn.disabled = true; msg.innerText = "";
+
+            safeFetch({ action: "student_login", maPhong: maPhong, maHS: maHS, pass: pass })
+            .then(data => {
+                btn.innerText = "VÀO PHÒNG THI"; btn.disabled = false;
+                if (data.status === "success") {
+                    let srvTime = data.serverTime || Date.now();
+                    let clientSrvOffset = Date.now() - srvTime; 
+                    let tMo = data.thoiGianMo ? parseInt(data.thoiGianMo) : srvTime;
+                    let durationMs = parseInt(data.thoiGian) * 60 * 1000;
+                    exactClientEndTime = tMo + durationMs + clientSrvOffset; 
+                    timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
+
+                    if (timeRemaining <= 0) { msg.innerText = "⏳ Cảnh báo: Phòng thi này đã hết thời gian làm bài!"; return; }
+
+                    document.getElementById("login-screen").style.display = "none";
+                    document.getElementById("loading").style.display = "block";
+                    
+                    thongTinHS = { maHS: maHS, hoTen: data.student.HoTen, lop: data.student.Lop, maPhong: maPhong };
+                    danhSachDe = data.examData; 
+                    
+                    let cacMaDe = [...new Set(danhSachDe.map(c => String(c.MaDe).trim()))]; 
+                    maDeCuaToi = cacMaDe[Math.floor(Math.random() * cacMaDe.length)];
+                    document.getElementById("header-title").innerText = `HS: ${thongTinHS.hoTen} - Lớp: ${thongTinHS.lop}`;
+                    
+                    khopDuLieuLuuNhap(); renderExam(); startTimer(); theoDoiGianLan();
+                    roomStatusInterval = setInterval(checkRoomStatus, 1500);
+                } else { msg.innerText = "❌ Lỗi: " + (data.message || "Đăng nhập thất bại."); }
+            }).catch(err => { 
+                btn.innerText = "VÀO PHÒNG THI"; btn.disabled = false; 
+                msg.innerText = "❌ Lỗi iPhone: " + err.message; 
+            });
+        }
+
+        function checkRoomStatus() {
+            safeGet("get_all_rooms").then(data => {
+                if(data && data.length > 0) {
+                    let myRoom = data.find(r => String(r.MaPhong).trim() === String(thongTinHS.maPhong).trim());
+                    if(myRoom && myRoom.TrangThai !== currentStatus) {
+                        currentStatus = myRoom.TrangThai;
+                        
+                        if(currentStatus === "THU_BAI" && !isSubmitted && document.getElementById("exam-screen").style.display === "block") {
+                            showAlert("🚨 HẾT GIỜ!", "Giám thị đã khóa phòng và thu bài toàn bộ!<br><br>Hệ thống đang tự động nộp bài của em...", true);
+                            setTimeout(() => { submitExam(true); }, 1500);
+                        }
+                        else if (currentStatus === "CONG_BO_DIEM" && isSubmitted) {
+                            layDiemVaDapAnTuServer(false);
+                        }
+                        else if (currentStatus === "XEM_DAP_AN" && isSubmitted) {
+                            layDiemVaDapAnTuServer(true);
+                        }
+                    }
+                }
+            }).catch(e => { });
+        }
+
+        function layDiemVaDapAnTuServer(showDetail) {
+            safeGet("get_results&room=" + encodeURIComponent(thongTinHS.maPhong)).then(data => {
+                let ketQuaCuaToi = data.find(r => String(r.MaHS).trim() === String(thongTinHS.maHS).trim());
+                if(ketQuaCuaToi) {
+                    if(!showDetail) {
+                        document.getElementById("result-content").innerHTML = `<h1 style="color:#27ae60;font-size:36px;">📊 ĐIỂM CỦA EM: ${ketQuaCuaToi.Diem}</h1><p style="font-size: 18px; color: #555;">Giám thị đã công bố điểm.</p>`;
+                    } else {
+                        renderChiTietDapAn(ketQuaCuaToi);
+                    }
+                } else {
+                    document.getElementById("result-content").innerHTML = `<p style="color:red;">Đang tải điểm từ Máy chủ, em vui lòng chờ...</p>`;
+                    document.getElementById("btnXemDiem").style.display = "block";
+                }
+            });
+        }
+
+        function renderChiTietDapAn(ketQuaCuaToi) {
+            let chiTiet = JSON.parse(ketQuaCuaToi.ChiTiet);
+            let html = `<h1 style="color:#27ae60; margin-bottom:5px;">ĐIỂM CỦA EM: ${ketQuaCuaToi.Diem}</h1>`;
+            html += `<h3 style="color:#8e44ad; margin-top:0; border-bottom:2px solid #8e44ad; padding-bottom:10px;">ĐÁP ÁN CHI TIẾT TỪ SERVER</h3>`;
+            html += `<div style="text-align:left; background:#fafafa; padding:15px; border-radius:8px; max-height:500px; overflow-y:auto; border:1px solid #ddd;">`;
+            
+            let deCuaToi = danhSachDe.filter(c => String(c.MaDe).trim() === String(maDeCuaToi).trim());
+            deCuaToi.forEach((q, idx) => {
+                let item = chiTiet[q.CauSo]; if(!item) return;
+
+                let isCorrect = false; let chonText = item.chon; let dungText = item.dung;
+
+                if(q.Phan === "1") {
+                    isCorrect = item.chon.toUpperCase() === item.dung.toUpperCase();
+                    if(item.chon === 'A') chonText = `A. ${safeHTML(q.DapAnA)}`; if(item.chon === 'B') chonText = `B. ${safeHTML(q.DapAnB)}`; if(item.chon === 'C') chonText = `C. ${safeHTML(q.DapAnC)}`; if(item.chon === 'D') chonText = `D. ${safeHTML(q.DapAnD)}`;
+                    if(item.dung === 'A') dungText = `A. ${safeHTML(q.DapAnA)}`; if(item.dung === 'B') dungText = `B. ${safeHTML(q.DapAnB)}`; if(item.dung === 'C') dungText = `C. ${safeHTML(q.DapAnC)}`; if(item.dung === 'D') dungText = `D. ${safeHTML(q.DapAnD)}`;
+                } else if(q.Phan === "2") {
+                    let cArr = String(item.chon || "").split('-'); let dArr = String(item.dung || "").split('-'); let match = 0;
+                    for(let i=0; i<4; i++) {
+                        let cVal = (cArr[i] || "").toUpperCase().replace(/[ĐÐD]/g, 'D').trim();
+                        let dVal = (dArr[i] || "").toUpperCase().replace(/[ĐÐD]/g, 'D').replace(/'/g, '').trim();
+                        if(cVal && cVal !== "-" && cVal === dVal) match++;
+                    }
+                    isCorrect = (match === 4);
+                } else {
+                    let aClean = String(item.chon).replace(/,/g, '.').replace(/\s/g, '').toLowerCase();
+                    let dClean = String(item.dung).replace(/'/g, '').replace(/,/g, '.').replace(/\s/g, '').toLowerCase();
+                    isCorrect = (aClean !== "" && aClean === dClean);
+                }
+
+                let cColor = isCorrect ? "green" : "red"; let cIcon = isCorrect ? "✅" : "❌"; let bg = isCorrect ? "#e8f5e9" : "#fadbd8";
+
+                html += `<div style="margin-bottom:15px; padding:15px; background:white; border-radius:8px; border-left: 5px solid ${cColor}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <div style="font-weight:bold; margin-bottom:10px; font-size:15px;">Câu ${idx + 1}: <span style="font-weight:normal; color:#333;">${safeHTML(q.NoiDung)}</span></div>`;
+                
+                if (q.Phan === "1") {
+                    html += `<div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px; padding-left:10px;">
+                                <div style="${item.dung === 'A' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='A'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">A. ${safeHTML(q.DapAnA)}</div>
+                                <div style="${item.dung === 'B' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='B'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">B. ${safeHTML(q.DapAnB)}</div>
+                                <div style="${item.dung === 'C' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='C'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">C. ${safeHTML(q.DapAnC)}</div>
+                                <div style="${item.dung === 'D' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='D'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">D. ${safeHTML(q.DapAnD)}</div>
+                             </div>`;
+                } else if (q.Phan === "2") {
+                     html += `<div style="margin-bottom:10px; padding-left:10px;"><div>a) ${safeHTML(q.DapAnA)}</div><div>b) ${safeHTML(q.DapAnB)}</div><div>c) ${safeHTML(q.DapAnC)}</div><div>d) ${safeHTML(q.DapAnD)}</div></div>`;
+                }
+                
+                html += `<div style="background:${bg}; padding:10px; border-radius:5px;">
+                            <span style="color:${cColor}; font-size:15px;">${cIcon} <b>Em chọn:</b> ${safeHTML(chonText) || "Chưa làm"}</span><br>
+                            <span style="color:#27ae60; font-size:15px; display:inline-block; margin-top:5px;">🎯 <b>Đáp án đúng:</b> ${safeHTML(dungText)}</span>
+                         </div>
+                         </div>`;
+            });
+            html += `</div>`;
+            document.getElementById("result-content").innerHTML = html;
+        }
+
+        function khopDuLieuLuuNhap() { 
+            try {
+                let saved = localStorage.getItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`); 
+                if (saved) { let parsed = JSON.parse(saved); answers = parsed.answers || {}; if(parsed.maDe) maDeCuaToi = parsed.maDe; } 
+            } catch(e) { console.log("Zalo/Safari block LocalStorage"); }
+        }
+        
+        function saveLocal() { 
+            try {
+                localStorage.setItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`, JSON.stringify({ maDe: maDeCuaToi, answers: answers })); 
+            } catch(e) {}
+        }
+
+        function renderExam() {
+            document.getElementById("loading").style.display = "none"; document.getElementById("exam-screen").style.display = "block";
+            let html = `<h3 style="text-align:center; color:#1a73e8;">MÃ ĐỀ: ${maDeCuaToi}</h3>`;
+            let deCuaToi = danhSachDe.filter(c => String(c.MaDe).trim() === String(maDeCuaToi).trim());
+            let p1 = deCuaToi.filter(c => String(c.Phan).trim() === "1"); let p2 = deCuaToi.filter(c => String(c.Phan).trim() === "2"); let p3 = deCuaToi.filter(c => String(c.Phan).trim() === "3");
+
+            if (p1.length > 0) {
+                html += `<h3 class="phan-title">PHẦN I: Trắc nghiệm nhiều lựa chọn</h3>`;
+                p1.forEach((q, index) => {
+                    let cId = q.CauSo; let ans = answers[cId] || "";
+                    html += `
+                    <div class="question-box">
+                        <div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div>
+                        <div class="options-p1">
+                            <div class="radio-option"><input type="radio" id="${cId}_A" name="${cId}" value="A" ${ans==="A"?"checked":""} onchange="luuDapAn('${cId}', 'A')"> <label for="${cId}_A">A. ${safeHTML(q.DapAnA)}</label></div>
+                            <div class="radio-option"><input type="radio" id="${cId}_B" name="${cId}" value="B" ${ans==="B"?"checked":""} onchange="luuDapAn('${cId}', 'B')"> <label for="${cId}_B">B. ${safeHTML(q.DapAnB)}</label></div>
+                            <div class="radio-option"><input type="radio" id="${cId}_C" name="${cId}" value="C" ${ans==="C"?"checked":""} onchange="luuDapAn('${cId}', 'C')"> <label for="${cId}_C">C. ${safeHTML(q.DapAnC)}</label></div>
+                            <div class="radio-option"><input type="radio" id="${cId}_D" name="${cId}" value="D" ${ans==="D"?"checked":""} onchange="luuDapAn('${cId}', 'D')"> <label for="${cId}_D">D. ${safeHTML(q.DapAnD)}</label></div>
+                        </div>
+                    </div>`;
+                });
+            }
+            if (p2.length > 0) {
+                html += `<h3 class="phan-title">PHẦN II: Trắc nghiệm Đúng/Sai</h3>`;
+                p2.forEach((q, index) => {
+                    let cId = q.CauSo; let ansArr = (answers[cId] || "---").split('-');
+                    html += `<div class="question-box"><div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div><table class="table-p2"><tr><th>Phát biểu</th><th style="width:60px;">Đúng</th><th style="width:60px;">Sai</th></tr><tr><td class="text-left">a) ${safeHTML(q.DapAnA)}</td><td><input type="radio" name="${cId}_0" id="${cId}_0D" value="Đ" ${ansArr[0]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_0" id="${cId}_0S" value="S" ${ansArr[0]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">b) ${safeHTML(q.DapAnB)}</td><td><input type="radio" name="${cId}_1" id="${cId}_1D" value="Đ" ${ansArr[1]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_1" id="${cId}_1S" value="S" ${ansArr[1]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">c) ${safeHTML(q.DapAnC)}</td><td><input type="radio" name="${cId}_2" id="${cId}_2D" value="Đ" ${ansArr[2]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_2" id="${cId}_2S" value="S" ${ansArr[2]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">d) ${safeHTML(q.DapAnD)}</td><td><input type="radio" name="${cId}_3" id="${cId}_3D" value="Đ" ${ansArr[3]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_3" id="${cId}_3S" value="S" ${ansArr[3]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr></table></div>`;
+                });
+            }
+            if (p3.length > 0) {
+                html += `<h3 class="phan-title">PHẦN III: Trả lời ngắn</h3>`;
+                p3.forEach((q, index) => {
+                    let cId = q.CauSo; let ans = answers[cId] || "";
+                    html += `<div class="question-box"><div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div><input type="text" class="input-p3" placeholder="Nhập đáp án..." value="${ans}" onblur="luuDapAn('${cId}', this.value)"></div>`;
+                });
+            }
+            document.getElementById("exam-content").innerHTML = html;
+        }
+
+        function luuDapAn(cId, val) { answers[cId] = val.trim(); saveLocal(); }
+        function luuDapAnP2(cId) {
+            let val0 = document.querySelector(`input[name="${cId}_0"]:checked`)?.value || "-"; let val1 = document.querySelector(`input[name="${cId}_1"]:checked`)?.value || "-"; let val2 = document.querySelector(`input[name="${cId}_2"]:checked`)?.value || "-"; let val3 = document.querySelector(`input[name="${cId}_3"]:checked`)?.value || "-";
+            answers[cId] = `${val0}-${val1}-${val2}-${val3}`; saveLocal();
+        }
+
+        function confirmSubmit() { if(confirm("Em đã kiểm tra kỹ bài làm và muốn nộp bài?")) submitExam(false); }
+        
+        function submitExam(isAuto = false) {
+            if(isSubmitted) return; isSubmitted = true;
+            clearInterval(timerInterval); 
+            document.getElementById('alert-modal').style.display = 'none'; 
+            document.getElementById("exam-screen").style.display = "none"; 
+            document.getElementById("loading").style.display = "block"; 
+            
+            const btnNop = document.getElementById("btnNopBai");
+            if(btnNop) btnNop.disabled = true;
+            document.getElementById("loading").innerText = "⏳ Đang gửi dữ liệu lên Máy chủ chấm điểm...";
+            
+            let payload = { 
+                action: "submit_test", 
+                maPhong: thongTinHS.maPhong, 
+                maHS: thongTinHS.maHS, 
+                hoTen: thongTinHS.hoTen, 
+                lop: thongTinHS.lop, 
+                maDe: maDeCuaToi, 
+                answers: answers, 
+                thoiGian: new Date().toISOString() 
+            };
+            
+            function sendData(retryCount = 3) {
+                safeFetch(payload).then(data => {
+                    if(data.status === "success") { 
+                        try { localStorage.removeItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`); } catch(e){} 
+                        document.getElementById("loading").style.display = "none"; 
+                        document.getElementById("result-screen").style.display = "block"; 
+                    } else throw new Error(data.message);
+                }).catch(err => { 
+                    if(retryCount > 0) { 
+                        document.getElementById("loading").innerText = `⚠️ Máy chủ đang quá tải. Tự động nộp lại sau 2 giây... (${retryCount})`; 
+                        setTimeout(() => sendData(retryCount - 1), 2000); 
+                    } else { 
+                        alert("❌ Vẫn nghẽn mạng! Nhưng bài đã được lưu vào máy. Đợi Giám thị kiểm tra nhé."); 
+                        document.getElementById("loading").style.display = "none"; 
+                        document.getElementById("exam-screen").style.display = "block"; 
+                        isSubmitted = false;
+                        if(btnNop) btnNop.disabled = false;
+                    } 
+                });
+            } 
+            sendData();
+        }
+
+        function startTimer() {
+            let display = document.getElementById("time-display");
+            timerInterval = setInterval(() => { 
+                timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
+                if (timeRemaining <= 0) { 
+                    clearInterval(timerInterval); display.innerText = "00:00";
+                    alert("Đã hết giờ làm bài! Hệ thống tự động nộp bài."); submitExam(true); 
+                } else {
+                    let m = Math.floor(timeRemaining / 60); let s = timeRemaining % 60; 
+                    display.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`; 
+                    if(timeRemaining <= 60) display.style.backgroundColor = "#c0392b";
+                }
+            }, 1000);
+        }
+        
+        function theoDoiGianLan() { 
+            document.addEventListener("visibilitychange", () => { 
+                if (!document.hidden && exactClientEndTime > 0 && !isSubmitted && document.getElementById("exam-screen").style.display === "block") {
+                    timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Đã hết giờ làm bài trong lúc em rời khỏi màn hình! Hệ thống tự động nộp bài.");
+                        submitExam(true); return;
+                    }
+                }
+                if (document.hidden && !isSubmitted && document.getElementById("exam-screen").style.display === "block") { 
+                    cheatCount++; document.getElementById("cheat-count").innerText = cheatCount; 
+                    if(cheatCount === 1) showAlert("⚠️ CẢNH BÁO (1/3)", "Em vừa chuyển sang ứng dụng khác. Nếu vi phạm 3 lần, bài sẽ tự động nộp!");
+                    else if(cheatCount === 2) showAlert("⚠️ CẢNH BÁO CUỐI (2/3)", "Đây là lần cảnh báo cuối. Rời màn hình lần nữa, bài sẽ tự động nộp bài lập tức!");
+                    else if(cheatCount >= 3) { showAlert("🚨 ĐÌNH CHỈ THI", "Em đã vi phạm quy chế 3 lần. Hệ thống đang tự động thu bài!", true); setTimeout(() => submitExam(true), 2000); }
+                } 
+            }); 
+        }
+    </script>
+</body>
+</html>
