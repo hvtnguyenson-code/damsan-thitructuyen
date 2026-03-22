@@ -1,594 +1,273 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Làm Bài Kiểm Tra - Đam San V2</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; user-select: none; }
-        .header { background: #1a73e8; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .header h2 { margin: 0; font-size: 18px; }
-        .timer { font-size: 20px; font-weight: bold; background: #e74c3c; padding: 5px 15px; border-radius: 20px; }
-        .container { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        #gate1-screen, #gate2-screen { text-align: center; padding: 40px 20px; position: relative; }
-        #gate1-screen input { width: 100%; max-width: 300px; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        #gate1-screen button { background: #1a73e8; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        #gate1-screen button:disabled { background: #95a5a6; cursor: not-allowed; }
-        
-        .phan-title { color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px; margin-top: 30px; }
-        
-        .question-box { background: #fafafa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee; display: block !important; clear: both !important; overflow: hidden; position: relative; width: 100%; box-sizing: border-box; }
-        .question-content { font-weight: bold; margin-bottom: 10px; font-size: 15px; }
-        .question-content img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
-        .question-content table { width: 100%; border-collapse: collapse; margin: 10px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .question-content th, .question-content td { border: 1px solid #7f8c8d; padding: 8px; text-align: center; font-weight: normal; }
-        .question-content th { background-color: #ecf0f1; font-weight: bold; }
-        
-        .options-p1 label, .options-p1 p { margin: 0; padding: 0; display: inline; }
-        .radio-option { display: flex; align-items: flex-start; padding: 10px; background: white; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .radio-option:hover { background: #e8f0fe; }
-        .radio-option input[type="radio"] { margin-right: 10px; margin-top: 3px; transform: scale(1.2); cursor: pointer; }
-        .radio-option label { cursor: pointer; width: 100%; font-weight: normal; margin: 0; }
+var TAB_NGAN_HANG = "NganHangCauHoi";
+var TAB_HOC_SINH = "DanhSachHocSinh";
+var TAB_PHONG_THI = "TrangThaiPhong";
+var TAB_DE_THI = "DuLieuDeThi";
+var TAB_KET_QUA = "KetQua";
 
-        .table-p2 { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
-        .table-p2 th, .table-p2 td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-        .table-p2 th { background: #f2f2f2; }
-        .table-p2 td.text-left { text-align: left; }
-        .input-p3 { width: 100%; padding: 12px; border: 2px solid #1a73e8; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-        .submit-btn { display: block; width: 100%; max-width: 300px; margin: 30px auto; background: #27ae60; color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .submit-btn:disabled { background: #95a5a6; cursor: not-allowed; }
-        
-        #loading { text-align: center; font-size: 18px; color: #555; padding: 50px; display: none; }
-        .warning-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; text-align: center; border: 1px solid #ffeeba; }
-        
-        #alert-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; }
-        .alert-content { background:white; padding:40px; border-radius:10px; text-align:center; max-width:600px; width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height:80vh; overflow-y:auto; }
-        .alert-content h2 { color:#e74c3c; margin-top:0; font-size: 24px; text-transform: uppercase; }
-        .alert-btn { background:#1a73e8; color:white; border:none; padding:12px 30px; font-size:18px; font-weight:bold; border-radius:5px; cursor:pointer; margin-top:20px; width: 100%; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h2 id="header-title">Hệ Thống Đánh Giá - Học Sinh</h2>
-        <div class="timer" id="time-display">--:--</div>
-    </div>
+function getOrCreateSheet(ss, sheetName, headers) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) { sheet = ss.insertSheet(sheetName); sheet.getRange(1, 1, 1, headers.length).setValues([headers]); } 
+  else if (sheet.getLastRow() === 0) { sheet.getRange(1, 1, 1, headers.length).setValues([headers]); }
+  return sheet;
+}
+
+function updateSheetData(ss, sheetName, keepConditionFn, modifyFn) {
+  var sheet = ss.getSheetByName(sheetName);
+  if(!sheet) return;
+  var data = sheet.getDataRange().getValues();
+  if(data.length <= 1) return; 
+  var headers = data[0]; var newData = [headers];
+  for(var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if(keepConditionFn(row)) { if(modifyFn) row = modifyFn(row); newData.push(row); }
+  }
+  sheet.clearContents(); 
+  if(newData.length > 0) sheet.getRange(1, 1, newData.length, headers.length).setValues(newData); 
+}
+
+function doGet(e) {
+  var output = ContentService.createTextOutput(); output.setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(); var action = e.parameter.action;
     
-    <div id="alert-modal">
-        <div class="alert-content">
-            <h2 id="alert-title">Thông báo</h2>
-            <div id="alert-text" style="font-size:16px;">Nội dung...</div>
-            <button class="alert-btn" onclick="document.getElementById('alert-modal').style.display='none'">Đã Rõ</button>
-        </div>
-    </div>
+    if (action === "get_bank_meta") {
+      var sheet = ss.getSheetByName(TAB_NGAN_HANG); if (!sheet) return output.setContent(JSON.stringify({baiHocs: []}));
+      var data = sheet.getDataRange().getValues(); var baiHocs = [];
+      for (var i = 1; i < data.length; i++) { if (data[i][1] && baiHocs.indexOf(data[i][1]) === -1) baiHocs.push(data[i][1]); }
+      return output.setContent(JSON.stringify({baiHocs: baiHocs}));
+    }
+    if (action === "get_full_bank") {
+      var sheet = ss.getSheetByName(TAB_NGAN_HANG); if (!sheet) return output.setContent(JSON.stringify([]));
+      var data = sheet.getDataRange().getValues(); var result = [];
+      for (var i = 1; i < data.length; i++) { result.push({ id: data[i][0], baiHoc: data[i][1], phan: data[i][2], mucDo: data[i][3], noiDung: data[i][4], A: data[i][5], B: data[i][6], C: data[i][7], D: data[i][8], dapAnDung: data[i][9], LoiGiai: data[i][10] || "" }); }
+      return output.setContent(JSON.stringify(result));
+    }
+    if (action === "get_meta_data") {
+      var sheet = ss.getSheetByName(TAB_HOC_SINH); if (!sheet) return output.setContent(JSON.stringify({lops: []}));
+      var data = sheet.getDataRange().getValues(); var lops = [];
+      for (var i = 1; i < data.length; i++) { if (data[i][2] && lops.indexOf(data[i][2]) === -1) lops.push(data[i][2]); }
+      return output.setContent(JSON.stringify({lops: lops}));
+    }
+    if (action === "get_all_rooms") {
+      var sheet = ss.getSheetByName(TAB_PHONG_THI); if (!sheet) return output.setContent(JSON.stringify([]));
+      var data = sheet.getDataRange().getValues(); var result = [];
+      for (var i = 1; i < data.length; i++) { result.push({ MaPhong: data[i][0], TenDotKiemTra: data[i][1], DoiTuong: data[i][2], ThoiGian: data[i][3], TrangThai: data[i][4] }); }
+      return output.setContent(JSON.stringify(result));
+    }
+    if (action === "get_results") {
+      var room = e.parameter.room; var sheet = ss.getSheetByName(TAB_KET_QUA); if (!sheet) return output.setContent(JSON.stringify([]));
+      var data = sheet.getDataRange().getValues(); var result = [];
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][1]).trim() === String(room).trim()) { result.push({ ThoiGian: data[i][0], MaPhong: data[i][1], MaHS: data[i][2], HoTen: data[i][3], Lop: data[i][4], MaDe: data[i][5], Diem: data[i][6], ChiTiet: data[i][7] }); }
+      }
+      return output.setContent(JSON.stringify(result));
+    }
+    if (action === "get_students") {
+      var sheet = ss.getSheetByName(TAB_HOC_SINH); if (!sheet) return output.setContent(JSON.stringify([]));
+      var data = sheet.getDataRange().getValues(); var result = [];
+      for (var i = 1; i < data.length; i++) { result.push({ MaHS: data[i][0], HoTen: data[i][1], Lop: data[i][2], TrangThai: (data[i][3] == "123456" ? "MacDinh" : "DaDoi") }); }
+      return output.setContent(JSON.stringify(result));
+    }
+    return output.setContent(JSON.stringify({status: "success"}));
+  } catch(err) { return output.setContent(JSON.stringify({status: "error", message: "GET Lỗi: " + err.message})); }
+}
 
-    <div class="container">
-        <div id="gate1-screen">
-            <h1 style="color:#1a73e8; margin-bottom: 5px;">CỔNG ĐĂNG NHẬP</h1>
-            <p style="color:#777; margin-bottom: 25px;">Hệ thống Đánh giá PTDTNT THPT Đam San</p>
-            <input type="text" id="maHS" placeholder="Số báo danh / Mã Học Sinh"><br>
-            <input type="password" id="pass" placeholder="Mật khẩu (Mặc định: 123456)"><br>
-            <button id="btnDangNhap" onclick="xacThucGate1()">ĐĂNG NHẬP HỆ THỐNG</button>
-            <p id="gate1-msg" style="color: red; font-weight: bold; margin-top: 15px;"></p>
-        </div>
+function doPost(e) {
+  var output = ContentService.createTextOutput(); output.setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(); 
+    if(!e || !e.postData || !e.postData.contents) throw new Error("Không có Payload.");
+    var payload = JSON.parse(e.postData.contents);
 
-        <div id="gate2-screen" style="display: none;">
-            <h1 style="color:#27ae60; margin-bottom: 5px; margin-top: 30px;">KHU VỰC CHỜ THI</h1>
-            <p style="font-size: 16px; color: #555;">Chào em, <b id="hs-name-display" style="color:#1a73e8;"></b> (Lớp <b id="hs-class-display"></b>)</p>
-            <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 2px dashed #27ae60; margin: 20px auto; max-width: 400px;">
-                <h3 style="margin-top:0; color:#2c3e50;">PHÒNG THI ĐƯỢC CHỈ ĐỊNH</h3>
-                <p style="font-size: 24px; font-weight: bold; color: #d35400; margin: 10px 0;" id="room-name-display">Đang quét...</p>
-                <p style="color: #7f8c8d; margin-bottom: 0;" id="room-desc-display">...</p>
-            </div>
-            <button id="btnVaoThi" onclick="vaoPhongThi()" style="background: #d35400; color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 100%; max-width: 300px;">🚀 VÀO PHÒNG THI</button>
-        </div>
-        
-        <div id="loading">⏳ Đang kết nối máy chủ...</div>
-        
-        <div id="exam-screen" style="display: none;">
-            <div class="warning-box">
-                <b>⚠️ LƯU Ý:</b> Hệ thống tự động lưu nháp. Nếu rớt mạng, hãy F5 tải lại trang. Tuyệt đối không chuyển Tab (Số lần vi phạm: <span id="cheat-count" style="color:red; font-weight:bold;">0</span>).
-            </div>
-            <div id="exam-content"></div>
-            <button id="btnNopBai" class="submit-btn" onclick="confirmSubmit()">📥 NỘP BÀI</button>
-        </div>
-        
-        <div id="result-screen" style="display: none; text-align: center; padding: 40px 20px;">
-            <div id="result-content">
-                <h1 style="color: #27ae60;">🎉 NỘP BÀI THÀNH CÔNG!</h1>
-                <p style="font-size: 16px; color: #555;">Hệ thống Máy Chủ đã tiếp nhận và đang xử lý bài làm của em.</p>
-                <p style="font-size: 14px; color: #f39c12; font-style:italic;">(Hãy giữ nguyên màn hình để xem Điểm/Đáp án khi Giám thị công bố)</p>
-            </div>
-            <button class="submit-btn" style="background:#3498db; margin-top:20px; display:none;" id="btnXemDiem" onclick="checkRoomStatus()">🔄 Tải Lại Điểm</button>
-        </div>
-    </div>
+    if (Array.isArray(payload)) {
+      if (payload.length === 0) return output.setContent(JSON.stringify({status: "success"}));
+      var maPhong = String(payload[0].MaPhong).trim();
+      getOrCreateSheet(ss, TAB_DE_THI, ["MaPhong", "MaDe", "CauSo", "Phan", "MucDo", "NoiDung", "DapAnA", "DapAnB", "DapAnC", "DapAnD", "DapAnDung", "LoiGiai"]);
+      updateSheetData(ss, TAB_DE_THI, function(row) { return String(row[0]).trim() !== maPhong; });
+      var sheet = ss.getSheetByName(TAB_DE_THI);
+      var rows = payload.map(function(q) { return [q.MaPhong, q.MaDe, q.CauSo, q.Phan, q.MucDo, q.NoiDung, q.DapAnA, q.DapAnB, q.DapAnC, q.DapAnD, q.DapAnDung, q.LoiGiai || ""]; });
+      if(rows.length > 0) sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 12).setValues(rows);
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"}));
+    }
 
-    <script>
-        document.addEventListener('contextmenu', event => event.preventDefault()); 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || (e.ctrlKey && e.key === "U")) {
-                e.preventDefault(); showAlert("🚨 CẢNH BÁO", "Hành vi can thiệp đã bị chặn!", true);
-            }
-        });
-        
-        window.onerror = function(message, source, lineno) {
-            let msgBox = document.getElementById("gate1-msg");
-            if(msgBox) msgBox.innerText = `Lỗi hệ điều hành: ${message}. Vui lòng thử lại!`;
-            let btn = document.getElementById("btnDangNhap");
-            if(btn) { btn.innerText = "ĐĂNG NHẬP HỆ THỐNG"; btn.disabled = false; }
-            return false;
-        };
+    var action = payload.action;
 
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzLMjB0bzUAiEAcloxp4Qxw6_umsZUQ1UCpGcU2YRK_P09TdxDAhPvalenQ0Zi6LDVTA/exec";
-
-        let thongTinHS = {}; let danhSachDe = []; let maDeCuaToi = ""; let answers = {};
-        let exactClientEndTime = 0; let timeRemaining = 0; let timerInterval; let cheatCount = 0; let isSubmitted = false;
-        let roomStatusInterval; let currentStatus = "";
-        
-        let phongDuocGiao = null;
-        let tempLoginData = null;
-
-        function showAlert(title, text, isBlocking = false) {
-            document.getElementById('alert-title').innerText = title;
-            document.getElementById('alert-text').innerHTML = text;
-            document.getElementById('alert-modal').style.display = 'flex';
-            if(isBlocking) { document.querySelector('.alert-btn').style.display = 'none'; } 
-            else { document.querySelector('.alert-btn').style.display = 'block'; }
+    if (action === "student_login") {
+      var hsSheet = ss.getSheetByName(TAB_HOC_SINH); var phongSheet = ss.getSheetByName(TAB_PHONG_THI); var deSheet = ss.getSheetByName(TAB_DE_THI);
+      if(!hsSheet || !phongSheet || !deSheet) throw new Error("Hệ thống chưa khởi tạo đủ Tab.");
+      var maPhong = String(payload.maPhong).trim(); var maHS = String(payload.maHS).trim(); var pass = String(payload.pass).trim();
+      
+      var pData = phongSheet.getDataRange().getValues(); var pValid = false, tThai = "", tGian = 15, dTuong = "TatCa", tMo = "";
+      for (var i = 1; i < pData.length; i++) { 
+          if (String(pData[i][0]).trim() === maPhong) { pValid = true; tThai = pData[i][4]; tGian = pData[i][3] || 15; dTuong = pData[i][2]; tMo = pData[i][5] || ""; break; } 
+      }
+      if (!pValid) throw new Error("Mã phòng thi không tồn tại!");
+      if (tThai !== "MO_PHONG") throw new Error("Phòng thi hiện đang bị ĐÓNG!");
+      
+      var hsData = hsSheet.getDataRange().getValues(); var student = null;
+      for (var i = 1; i < hsData.length; i++) { if (String(hsData[i][0]).trim() === maHS && String(hsData[i][3]).trim() === pass) { student = { HoTen: hsData[i][1], Lop: hsData[i][2] }; break; } }
+      if (!student) throw new Error("Sai Số Báo Danh hoặc Mật khẩu!");
+      if (dTuong !== "TatCa" && String(student.Lop).trim() !== String(dTuong).trim()) throw new Error("Em không thuộc đối tượng thi phòng này!");
+      
+      var deData = deSheet.getDataRange().getValues(); var examData = [];
+      for (var i = 1; i < deData.length; i++) {
+        if (String(deData[i][0]).trim() === maPhong) { 
+          examData.push({ MaPhong: deData[i][0], MaDe: String(deData[i][1]), CauSo: String(deData[i][2]), Phan: String(deData[i][3]), MucDo: String(deData[i][4]), NoiDung: deData[i][5], DapAnA: deData[i][6], DapAnB: deData[i][7], DapAnC: deData[i][8], DapAnD: deData[i][9] }); 
         }
+      }
+      if (examData.length === 0) throw new Error("Phòng thi hiện tại chưa có đề thi!");
+      return output.setContent(JSON.stringify({ status: "success", student: student, thoiGian: tGian, thoiGianMo: tMo, serverTime: new Date().getTime(), examData: examData }));
+    }
 
-        function safeHTML(str) {
-            if (!str) return ""; let doc = new DOMParser().parseFromString(str, 'text/html'); return doc.body.innerHTML;
-        }
-
-        function safeFetch(payload) {
-            return fetch(APPS_SCRIPT_URL, { 
-                method: "POST", 
-                headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-                redirect: "follow", 
-                body: JSON.stringify(payload)
-            }).then(async res => { 
-                let text = await res.text(); 
-                try { return JSON.parse(text); } 
-                catch(e) { throw new Error("Máy chủ Google bị nghẽn."); } 
-            });
-        }
-
-        function safeGet(actionStr) {
-            return fetch(APPS_SCRIPT_URL + "?action=" + actionStr + "&t=" + new Date().getTime(), { 
-                method: "GET", 
-                redirect: "follow" 
-            }).then(async res => { 
-                let text = await res.text(); 
-                try { return JSON.parse(text); } 
-                catch(e) { throw new Error("Lỗi lấy dữ liệu."); } 
-            });
-        }
-
-        function xacThucGate1() {
-            const maHS = document.getElementById("maHS").value.trim().toUpperCase(); 
-            const pass = document.getElementById("pass").value.trim();
-            const msg = document.getElementById("gate1-msg");
-            const btn = document.getElementById("btnDangNhap");
-
-            if (!maHS || !pass) { msg.innerText = "⚠️ Vui lòng nhập đủ thông tin!"; return; }
-
-            btn.innerText = "⏳ ĐANG QUÉT DỮ LIỆU..."; btn.disabled = true; msg.innerText = "";
-
-            Promise.all([ safeGet("get_students"), safeGet("get_all_rooms") ])
-            .then(values => {
-                let students = values[0] || [];
-                let rooms = values[1] || [];
-
-                let myStudent = students.find(s => String(s.MaHS).trim().toUpperCase() === maHS);
-                if(!myStudent) {
-                    msg.innerText = "❌ Không tìm thấy thông tin Mã HS này trong hệ thống!";
-                    btn.innerText = "ĐĂNG NHẬP HỆ THỐNG"; btn.disabled = false; return;
-                }
-
-                let myClass = String(myStudent.Lop).trim();
-                let activeRooms = rooms.filter(r => r.TrangThai === "MO_PHONG");
-                
-                phongDuocGiao = activeRooms.find(r => String(r.DoiTuong).trim() === myClass);
-                if(!phongDuocGiao) {
-                    phongDuocGiao = activeRooms.find(r => String(r.DoiTuong).trim() === "TatCa" || String(r.DoiTuong).trim() === "");
-                }
-
-                if(!phongDuocGiao) {
-                    msg.innerText = `⛔ Hiện tại chưa có Phòng thi nào được mở cho lớp [${myClass}]. Em vui lòng đợi Giám thị mở phòng nhé!`;
-                    btn.innerText = "ĐĂNG NHẬP HỆ THỐNG"; btn.disabled = false; return;
-                }
-
-                btn.innerText = "⏳ ĐANG XÁC THỰC MẬT KHẨU...";
-                return safeFetch({ action: "student_login", maPhong: phongDuocGiao.MaPhong, maHS: maHS, pass: pass });
-            })
-            .then(loginResult => {
-                if(!loginResult) return; 
-                
-                if(loginResult.status === "success") {
-                    tempLoginData = loginResult;
-                    tempLoginData.maHS = maHS;
-                    
-                    document.getElementById("gate1-screen").style.display = "none";
-                    document.getElementById("gate2-screen").style.display = "block";
-                    
-                    document.getElementById("hs-name-display").innerText = loginResult.student.HoTen;
-                    document.getElementById("hs-class-display").innerText = loginResult.student.Lop;
-                    document.getElementById("room-name-display").innerText = phongDuocGiao.MaPhong;
-                    document.getElementById("room-desc-display").innerText = phongDuocGiao.TenDotKiemTra || "Bài kiểm tra chung";
-
-                } else {
-                    msg.innerText = "❌ Sai Mật khẩu đăng nhập!";
-                    btn.innerText = "ĐĂNG NHẬP HỆ THỐNG"; btn.disabled = false;
-                }
-            })
-            .catch(err => {
-                btn.innerText = "ĐĂNG NHẬP HỆ THỐNG"; btn.disabled = false; 
-                msg.innerText = "❌ Lỗi mạng: " + err.message;
-            });
-        }
-
-        function vaoPhongThi() {
-            if(!tempLoginData || !phongDuocGiao) return;
-
-            const maHS = tempLoginData.maHS;
-            const maPhong = phongDuocGiao.MaPhong;
-
-            if(localStorage.getItem(`submitted_${maHS}_${maPhong}`) === "true") {
-                alert("⛔ Em đã hoàn thành và nộp bài kiểm tra này rồi!"); return;
-            }
-
-            document.getElementById("gate2-screen").style.display = "none";
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("loading").innerText = "⏳ Đang kiểm tra dữ liệu máy chủ...";
-
-            safeGet("get_results&room=" + encodeURIComponent(maPhong))
-            .then(results => {
-                if(results && results.status === "error") {
-                    throw new Error(results.message);
-                }
-                
-                if(Array.isArray(results) && results.length > 0) {
-                    let myResult = results.find(r => String(r.MaHS).trim() === String(maHS).trim());
-                    if(myResult && myResult.Diem !== "-" && myResult.Diem !== "") {
-                        document.getElementById("loading").style.display = "none";
-                        document.getElementById("gate2-screen").style.display = "block";
-                        alert("⛔ HỆ THỐNG TỪ CHỐI: Máy chủ ghi nhận em đã nộp bài kiểm tra này rồi. Điểm của em đã được lưu, không thể thi lại!");
-                        return;
-                    }
-                }
-                
-                document.getElementById("loading").innerText = "⏳ Đang chuẩn bị đề thi...";
-
-                let data = tempLoginData;
-                let srvTime = data.serverTime || Date.now();
-                let clientSrvOffset = Date.now() - srvTime; 
-                let tMo = data.thoiGianMo ? parseInt(data.thoiGianMo) : srvTime;
-                let durationMs = parseInt(data.thoiGian) * 60 * 1000;
-
-                exactClientEndTime = tMo + durationMs + clientSrvOffset; 
-                timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
-
-                if (timeRemaining <= 0) { 
-                    document.getElementById("loading").style.display = "none";
-                    alert("⏳ Cảnh báo: Phòng thi này đã hết thời gian làm bài!"); return; 
-                }
-
-                thongTinHS = { maHS: maHS, hoTen: data.student.HoTen, lop: data.student.Lop, maPhong: maPhong };
-                danhSachDe = data.examData; 
-                
-                let cacMaDe = [...new Set(danhSachDe.map(c => String(c.MaDe).trim()))].sort(); 
-                
-                let hashCode = 0;
-                for (let i = 0; i < maHS.length; i++) {
-                    hashCode = (hashCode * 31 + maHS.charCodeAt(i)) << 0; 
-                }
-                let deIndex = Math.abs(hashCode) % cacMaDe.length;
-                maDeCuaToi = cacMaDe[deIndex];
-                
-                document.getElementById("header-title").innerText = `HS: ${thongTinHS.hoTen} - Lớp: ${thongTinHS.lop}`;
-                
-                khopDuLieuLuuNhap(); renderExam(); startTimer(); theoDoiGianLan();
-                roomStatusInterval = setInterval(checkRoomStatus, 1500);
-
-            }).catch(err => {
-                alert("❌ Lỗi xác minh dữ liệu: " + err.message);
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("gate2-screen").style.display = "block";
-            });
-        }
-
-        function checkRoomStatus() {
-            safeGet("get_all_rooms").then(data => {
-                if(Array.isArray(data) && data.length > 0) {
-                    let myRoom = data.find(r => String(r.MaPhong).trim() === String(thongTinHS.maPhong).trim());
-                    if(myRoom && myRoom.TrangThai !== currentStatus) {
-                        currentStatus = myRoom.TrangThai;
-                        
-                        if(currentStatus === "THU_BAI" && !isSubmitted && document.getElementById("exam-screen").style.display === "block") {
-                            showAlert("🚨 HẾT GIỜ!", "Giám thị đã khóa phòng và thu bài toàn bộ!<br><br>Hệ thống đang tự động nộp bài của em...", true);
-                            setTimeout(() => { submitExam(true); }, 1500);
-                        }
-                        else if (currentStatus === "CONG_BO_DIEM" && isSubmitted) { layDiemVaDapAnTuServer(false); }
-                        else if (currentStatus === "XEM_DAP_AN" && isSubmitted) { layDiemVaDapAnTuServer(true); }
-                    }
-                }
-            }).catch(e => { });
-        }
-
-        function layDiemVaDapAnTuServer(showDetail) {
-            safeGet("get_results&room=" + encodeURIComponent(thongTinHS.maPhong)).then(data => {
-                if(!Array.isArray(data)) return;
-                let ketQuaCuaToi = data.find(r => String(r.MaHS).trim() === String(thongTinHS.maHS).trim());
-                if(ketQuaCuaToi) {
-                    if(!showDetail) {
-                        document.getElementById("result-content").innerHTML = `<h1 style="color:#27ae60;font-size:36px;">📊 ĐIỂM CỦA EM: ${ketQuaCuaToi.Diem}</h1><p style="font-size: 18px; color: #555;">Giám thị đã công bố điểm.</p>`;
-                    } else { renderChiTietDapAn(ketQuaCuaToi); }
-                } else {
-                    document.getElementById("result-content").innerHTML = `<p style="color:red;">Đang tải điểm từ Máy chủ, em vui lòng chờ...</p>`;
-                    document.getElementById("btnXemDiem").style.display = "block";
-                }
-            });
-        }
-
-        // 💥💥💥 HIỂN THỊ ĐÁP ÁN MỚI SIÊU TRỰC QUAN (ĐẶC BIỆT LÀ PHẦN II) 💥💥💥
-        function renderChiTietDapAn(ketQuaCuaToi) {
-            let chiTiet = JSON.parse(ketQuaCuaToi.ChiTiet);
-            let html = `<h1 style="color:#27ae60; margin-bottom:5px;">ĐIỂM CỦA EM: ${ketQuaCuaToi.Diem}</h1>`;
-            html += `<h3 style="color:#8e44ad; margin-top:0; border-bottom:2px solid #8e44ad; padding-bottom:10px;">ĐÁP ÁN CHI TIẾT TỪ SERVER</h3>`;
-            html += `<div style="text-align:left; background:#fafafa; padding:15px; border-radius:8px; max-height:500px; overflow-y:auto; border:1px solid #ddd;">`;
+    if (action === "submit_test") {
+      var hsAnswers = payload.answers || {}; 
+      var reqPhong = String(payload.maPhong).trim();
+      var reqMaDe = String(payload.maDe).trim();
+      
+      var deSheet = ss.getSheetByName(TAB_DE_THI);
+      var deData = deSheet.getDataRange().getValues();
+      
+      var tScore = 0; var chiTiet = {};
+      var totalP1 = 0, totalP2 = 0, totalP3 = 0;
+      var correctP1 = 0;
+      
+      for (var i = 1; i < deData.length; i++) {
+        if (String(deData[i][0]).trim() === reqPhong && String(deData[i][1]).trim() === reqMaDe) {
+            var cauSo = String(deData[i][2]).trim();
+            var p = String(deData[i][3]).trim();
+            var dungText = String(deData[i][10]).trim(); 
+            var loiGiaiText = String(deData[i][11] || "").trim();
+            var noiDungCau = String(deData[i][5]).replace(/<[^>]+>/g, '').substring(0, 50) + "...";
+            var ans = hsAnswers[cauSo] || "";
             
-            let deCuaToi = danhSachDe.filter(c => String(c.MaDe).trim() === String(maDeCuaToi).trim());
-            deCuaToi.forEach((q, idx) => {
-                let item = chiTiet[q.CauSo]; if(!item) return;
-
-                let isCorrect = false; let chonText = item.chon; let dungText = item.dung;
-                let matchP2 = 0; 
-
-                if(q.Phan === "1") {
-                    isCorrect = item.chon.toUpperCase() === item.dung.toUpperCase();
-                    if(item.chon === 'A') chonText = `A. ${safeHTML(q.DapAnA)}`; if(item.chon === 'B') chonText = `B. ${safeHTML(q.DapAnB)}`; if(item.chon === 'C') chonText = `C. ${safeHTML(q.DapAnC)}`; if(item.chon === 'D') chonText = `D. ${safeHTML(q.DapAnD)}`;
-                    if(item.dung === 'A') dungText = `A. ${safeHTML(q.DapAnA)}`; if(item.dung === 'B') dungText = `B. ${safeHTML(q.DapAnB)}`; if(item.dung === 'C') dungText = `C. ${safeHTML(q.DapAnC)}`; if(item.dung === 'D') dungText = `D. ${safeHTML(q.DapAnD)}`;
-                } else if(q.Phan === "2") {
-                    let cNorm = String(item.chon||"").toUpperCase().replace(/[^ĐSD]/g, '').replace(/D/g, 'Đ').padEnd(4, '-').substring(0,4);
-                    let dNorm = String(item.dung||"").toUpperCase().replace(/[^ĐSD]/g, '').replace(/D/g, 'Đ').padEnd(4, '-').substring(0,4);
-                    for(let i=0; i<4; i++) {
-                        if(cNorm[i] !== "-" && cNorm[i] === dNorm[i]) matchP2++;
-                    }
-                    isCorrect = (matchP2 === 4);
-                } else {
-                    let aClean = String(item.chon).replace(/,/g, '.').replace(/\s/g, '').toLowerCase();
-                    let dClean = String(item.dung).replace(/'/g, '').replace(/,/g, '.').replace(/\s/g, '').toLowerCase();
-                    isCorrect = (aClean !== "" && aClean === dClean);
-                }
-
-                let cColor = "red"; let cIcon = "❌"; let bg = "#fadbd8";
-                
-                // Set màu tổng thể cho khung câu hỏi
-                if (q.Phan === "2") {
-                    if (matchP2 === 4) { bg = "#e8f5e9"; cColor = "green"; cIcon = "✅"; }
-                    else if (matchP2 > 0) { bg = "#fff3cd"; cColor = "#d35400"; cIcon = "⚠️"; } // Khúc màu vàng cam cảnh báo đúng 1 phần
-                } else {
-                    bg = isCorrect ? "#e8f5e9" : "#fadbd8";
-                    cColor = isCorrect ? "green" : "red";
-                    cIcon = isCorrect ? "✅" : "❌";
-                }
-
-                html += `<div style="margin-bottom:15px; padding:15px; background:white; border-radius:8px; border-left: 5px solid ${cColor}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <div style="font-weight:bold; margin-bottom:10px; font-size:15px;">Câu ${idx + 1}: <span style="font-weight:normal; color:#333;">${safeHTML(q.NoiDung)}</span></div>`;
-                
-                if (q.Phan === "1") {
-                    html += `<div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px; padding-left:10px;">
-                                <div style="${item.dung === 'A' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='A'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">A. ${safeHTML(q.DapAnA)}</div>
-                                <div style="${item.dung === 'B' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='B'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">B. ${safeHTML(q.DapAnB)}</div>
-                                <div style="${item.dung === 'C' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='C'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">C. ${safeHTML(q.DapAnC)}</div>
-                                <div style="${item.dung === 'D' ? 'font-weight:bold;color:green;' : ''} ${item.chon==='D'&&!isCorrect ? 'color:red;text-decoration:line-through;' : ''}">D. ${safeHTML(q.DapAnD)}</div>
-                             </div>`;
-                    html += `<div style="background:${bg}; padding:10px; border-radius:5px;">
-                                <span style="color:${cColor}; font-size:15px;">${cIcon} <b>Em chọn:</b> ${safeHTML(chonText) || "Chưa làm"}</span><br>
-                                <span style="color:#27ae60; font-size:15px; display:inline-block; margin-top:5px;">🎯 <b>Đáp án đúng:</b> ${safeHTML(dungText)}</span>
-                             </div>`;
-                } 
-                else if (q.Phan === "2") {
-                    let cArr = String(item.chon||"").toUpperCase().replace(/[^ĐSD]/g, '').replace(/D/g, 'Đ').padEnd(4, '-').substring(0,4).split('');
-                    let dArr = String(item.dung||"").toUpperCase().replace(/[^ĐSD]/g, '').replace(/D/g, 'Đ').padEnd(4, '-').substring(0,4).split('');
-                    let opts = [q.DapAnA, q.DapAnB, q.DapAnC, q.DapAnD];
-                    let labels = ['a', 'b', 'c', 'd'];
-                    
-                    html += `<div style="overflow-x: auto;">
-                                <table style="width:100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 14px; min-width: 500px;">
-                                <thead>
-                                    <tr style="background-color: #f2f2f2;">
-                                        <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 40px;">Ý</th>
-                                        <th style="border: 1px solid #ccc; padding: 8px; text-align: center;">Nội dung phát biểu</th>
-                                        <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 80px;">Em chọn</th>
-                                        <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 80px;">Đáp án</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
-                    
-                    for(let i=0; i<4; i++) {
-                        let cVal = cArr[i];
-                        let dVal = dArr[i];
-                        let isRowCorrect = (cVal === 'Đ' || cVal === 'S') && (cVal === dVal);
-                        let rowBg = isRowCorrect ? "#e8f5e9" : "#fadbd8";
-                        let rowIcon = isRowCorrect ? "✅" : "❌";
-                        let cText = (cVal === 'Đ' || cVal === 'S') ? cVal : "-";
-                        
-                        html += `<tr style="background-color: ${rowBg};">
-                                    <td style="border: 1px solid #ccc; padding: 8px; text-align: center; font-weight: bold;">${labels[i]}</td>
-                                    <td style="border: 1px solid #ccc; padding: 8px; text-align: left;">${safeHTML(opts[i])}</td>
-                                    <td style="border: 1px solid #ccc; padding: 8px; text-align: center; font-weight: bold; color: ${isRowCorrect ? 'green' : 'red'};">${cText}</td>
-                                    <td style="border: 1px solid #ccc; padding: 8px; text-align: center; font-weight: bold; color: green;">${dVal} ${rowIcon}</td>
-                                 </tr>`;
-                    }
-                    html += `   </tbody>
-                             </table>
-                             </div>`;
-                             
-                    html += `<div style="background:${bg}; padding:10px; border-radius:5px;">
-                                <span style="color:${cColor}; font-size:15px;">${cIcon} <b>Kết quả câu hỏi:</b> Đúng ${matchP2}/4 ý</span>
-                             </div>`;
-                } 
-                else if (q.Phan === "3") {
-                    html += `<div style="background:${bg}; padding:10px; border-radius:5px;">
-                                <span style="color:${cColor}; font-size:15px;">${cIcon} <b>Em chọn:</b> ${safeHTML(chonText) || "Chưa làm"}</span><br>
-                                <span style="color:#27ae60; font-size:15px; display:inline-block; margin-top:5px;">🎯 <b>Đáp án đúng:</b> ${safeHTML(dungText.replace(/'/g, ''))}</span>
-                             </div>`;
-                }
-                         
-                if(item.loiGiai) {
-                    html += `<div style="background:#e8f0fe; padding:10px; border-radius:5px; margin-top:10px; border-left:4px solid #1a73e8;">
-                                <span style="color:#1a73e8; font-size:14px; font-weight:bold;">💡 Giải thích từ Giáo viên / AI:</span><br>
-                                <span style="color:#333; font-size:14px;">${safeHTML(item.loiGiai)}</span>
-                             </div>`;
-                }
-                html += `</div>`;
-            });
-            html += `</div>`;
-            document.getElementById("result-content").innerHTML = html;
-        }
-        // 💥💥💥 KẾT THÚC CẬP NHẬT GIAO DIỆN HIỂN THỊ ĐÁP ÁN 💥💥💥
-
-        function khopDuLieuLuuNhap() { 
-            try {
-                let saved = localStorage.getItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`); 
-                if (saved) { let parsed = JSON.parse(saved); answers = parsed.answers || {}; if(parsed.maDe) maDeCuaToi = parsed.maDe; } 
-            } catch(e) { console.log("Zalo/Safari block LocalStorage"); }
-        }
-        
-        function saveLocal() { 
-            try { localStorage.setItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`, JSON.stringify({ maDe: maDeCuaToi, answers: answers })); } catch(e) {}
-        }
-
-        function renderExam() {
-            document.getElementById("loading").style.display = "none"; document.getElementById("exam-screen").style.display = "block";
-            let html = `<h3 style="text-align:center; color:#1a73e8;">MÃ ĐỀ: ${maDeCuaToi}</h3>`;
-            let deCuaToi = danhSachDe.filter(c => String(c.MaDe).trim() === String(maDeCuaToi).trim());
-            let p1 = deCuaToi.filter(c => String(c.Phan).trim() === "1"); let p2 = deCuaToi.filter(c => String(c.Phan).trim() === "2"); let p3 = deCuaToi.filter(c => String(c.Phan).trim() === "3");
-
-            if (p1.length > 0) {
-                html += `<h3 class="phan-title">PHẦN I: Trắc nghiệm nhiều lựa chọn</h3>`;
-                p1.forEach((q, index) => {
-                    let cId = q.CauSo; let ans = answers[cId] || "";
-                    html += `
-                    <div class="question-box">
-                        <div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div>
-                        <div class="options-p1">
-                            <div class="radio-option"><input type="radio" id="${cId}_A" name="${cId}" value="A" ${ans==="A"?"checked":""} onchange="luuDapAn('${cId}', 'A')"> <label for="${cId}_A">A. ${safeHTML(q.DapAnA)}</label></div>
-                            <div class="radio-option"><input type="radio" id="${cId}_B" name="${cId}" value="B" ${ans==="B"?"checked":""} onchange="luuDapAn('${cId}', 'B')"> <label for="${cId}_B">B. ${safeHTML(q.DapAnB)}</label></div>
-                            <div class="radio-option"><input type="radio" id="${cId}_C" name="${cId}" value="C" ${ans==="C"?"checked":""} onchange="luuDapAn('${cId}', 'C')"> <label for="${cId}_C">C. ${safeHTML(q.DapAnC)}</label></div>
-                            <div class="radio-option"><input type="radio" id="${cId}_D" name="${cId}" value="D" ${ans==="D"?"checked":""} onchange="luuDapAn('${cId}', 'D')"> <label for="${cId}_D">D. ${safeHTML(q.DapAnD)}</label></div>
-                        </div>
-                    </div>`;
-                });
-            }
-            if (p2.length > 0) {
-                html += `<h3 class="phan-title">PHẦN II: Trắc nghiệm Đúng/Sai</h3>`;
-                p2.forEach((q, index) => {
-                    let cId = q.CauSo; let ansArr = (answers[cId] || "---").split('-');
-                    html += `<div class="question-box"><div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div><table class="table-p2"><tr><th>Phát biểu</th><th style="width:60px;">Đúng</th><th style="width:60px;">Sai</th></tr><tr><td class="text-left">a) ${safeHTML(q.DapAnA)}</td><td><input type="radio" name="${cId}_0" id="${cId}_0D" value="Đ" ${ansArr[0]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_0" id="${cId}_0S" value="S" ${ansArr[0]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">b) ${safeHTML(q.DapAnB)}</td><td><input type="radio" name="${cId}_1" id="${cId}_1D" value="Đ" ${ansArr[1]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_1" id="${cId}_1S" value="S" ${ansArr[1]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">c) ${safeHTML(q.DapAnC)}</td><td><input type="radio" name="${cId}_2" id="${cId}_2D" value="Đ" ${ansArr[2]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_2" id="${cId}_2S" value="S" ${ansArr[2]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr><tr><td class="text-left">d) ${safeHTML(q.DapAnD)}</td><td><input type="radio" name="${cId}_3" id="${cId}_3D" value="Đ" ${ansArr[3]==="Đ"?"checked":""} onchange="luuDapAnP2('${cId}')"></td><td><input type="radio" name="${cId}_3" id="${cId}_3S" value="S" ${ansArr[3]==="S"?"checked":""} onchange="luuDapAnP2('${cId}')"></td></tr></table></div>`;
-                });
-            }
-            if (p3.length > 0) {
-                html += `<h3 class="phan-title">PHẦN III: Trả lời ngắn</h3>`;
-                p3.forEach((q, index) => {
-                    let cId = q.CauSo; let ans = answers[cId] || "";
-                    html += `<div class="question-box"><div class="question-content"><b>Câu ${index + 1}:</b> ${safeHTML(q.NoiDung)}</div><input type="text" class="input-p3" placeholder="Nhập đáp án..." value="${ans}" onblur="luuDapAn('${cId}', this.value)"></div>`;
-                });
-            }
-            document.getElementById("exam-content").innerHTML = html;
-        }
-
-        function luuDapAn(cId, val) { answers[cId] = val.trim(); saveLocal(); }
-        function luuDapAnP2(cId) {
-            let val0 = document.querySelector(`input[name="${cId}_0"]:checked`)?.value || "-"; 
-            let val1 = document.querySelector(`input[name="${cId}_1"]:checked`)?.value || "-"; 
-            let val2 = document.querySelector(`input[name="${cId}_2"]:checked`)?.value || "-"; 
-            let val3 = document.querySelector(`input[name="${cId}_3"]:checked`)?.value || "-";
-            answers[cId] = `${val0}-${val1}-${val2}-${val3}`; saveLocal();
-        }
-
-        function confirmSubmit() { if(confirm("Em đã kiểm tra kỹ bài làm và muốn nộp bài?")) submitExam(false); }
-        
-        function submitExam(isAuto = false) {
-            if(isSubmitted) return; isSubmitted = true;
-            clearInterval(timerInterval); 
-            document.getElementById('alert-modal').style.display = 'none'; 
-            document.getElementById("exam-screen").style.display = "none"; 
-            document.getElementById("loading").style.display = "block"; 
+            chiTiet[cauSo] = { phan: p, chon: ans, dung: dungText, noiDungCau: noiDungCau, loiGiai: loiGiaiText };
             
-            const btnNop = document.getElementById("btnNopBai");
-            if(btnNop) btnNop.disabled = true;
-            document.getElementById("loading").innerText = "⏳ Đang gửi dữ liệu lên Máy chủ chấm điểm...";
-            
-            let payload = { 
-                action: "submit_test", 
-                maPhong: thongTinHS.maPhong, 
-                maHS: thongTinHS.maHS, 
-                hoTen: thongTinHS.hoTen, 
-                lop: thongTinHS.lop, 
-                maDe: maDeCuaToi, 
-                answers: answers, 
-                thoiGian: new Date().toISOString() 
-            };
-            
-            function sendData(retryCount = 3) {
-                safeFetch(payload).then(data => {
-                    if(data.status === "success") { 
-                        localStorage.setItem(`submitted_${thongTinHS.maHS}_${thongTinHS.maPhong}`, "true");
-                        try { localStorage.removeItem(`exam_loginfix_${thongTinHS.maHS}_${thongTinHS.maPhong}`); } catch(e){} 
-                        document.getElementById("loading").style.display = "none"; 
-                        document.getElementById("result-screen").style.display = "block"; 
-                    } else throw new Error(data.message);
-                }).catch(err => { 
-                    if(retryCount > 0) { 
-                        document.getElementById("loading").innerText = `⚠️ Máy chủ đang quá tải. Tự động nộp lại sau 2 giây... (${retryCount})`; 
-                        setTimeout(() => sendData(retryCount - 1), 2000); 
-                    } else { 
-                        alert("❌ Vẫn nghẽn mạng! Nhưng bài đã được lưu vào máy. Đợi Giám thị kiểm tra nhé."); 
-                        document.getElementById("loading").style.display = "none"; 
-                        document.getElementById("exam-screen").style.display = "block"; 
-                        isSubmitted = false;
-                        if(btnNop) btnNop.disabled = false;
-                    } 
-                });
+            if (p === "1") { 
+                totalP1++;
+                if (ans.toUpperCase().trim() === dungText.toUpperCase().trim()) { tScore += 0.25; correctP1++; } 
             } 
-            sendData();
+            else if (p === "2") {
+                totalP2++;
+                // THUẬT TOÁN CHẤM ĐIỂM CHUẨN XÁC P2 ĐÃ FIX LỖI THÁI LÁT
+                var cArr = String(ans || "----").split('-'); // Đảm bảo luôn ra mảng 4 phần tử
+                var dStr = String(dungText || "");
+                var dArr = dStr.indexOf('-') !== -1 ? dStr.split('-') : dStr.split('');
+                var match = 0;
+                
+                for(var j=0; j<4; j++) { 
+                    var cVal = String(cArr[j] || "").toUpperCase().replace(/[^ĐSDđsd]/g, '').replace(/D/g, 'Đ');
+                    var dVal = String(dArr[j] || "").toUpperCase().replace(/[^ĐSDđsd]/g, '').replace(/D/g, 'Đ');
+                    if(cVal !== "" && cVal === dVal) match++; 
+                }
+                
+                if(match === 1) tScore += 0.1; 
+                else if(match === 2) tScore += 0.25; 
+                else if(match === 3) tScore += 0.5; 
+                else if(match === 4) tScore += 1.0;
+            }
+            else if (p === "3") { 
+                totalP3++;
+                var aClean = ans.replace(/,/g, '.').replace(/\s/g, '').toLowerCase(); 
+                var dClean = dungText.replace(/'/g, '').replace(/,/g, '.').replace(/\s/g, '').toLowerCase(); 
+                if (aClean !== "" && aClean === dClean) { tScore += 0.25; } 
+            }
         }
+      }
+      
+      var finalScore = 0;
+      if (totalP1 > 0 && totalP2 === 0 && totalP3 === 0) { finalScore = Number(((correctP1 / totalP1) * 10).toFixed(2)); } 
+      else { finalScore = Number(tScore.toFixed(2)); }
+      
+      var finalChiTietStr = JSON.stringify(chiTiet);
+      
+      var lock = LockService.getScriptLock();
+      try {
+        lock.waitLock(30000); 
+        var kqSheet = getOrCreateSheet(ss, TAB_KET_QUA, ["ThoiGian", "MaPhong", "MaHS", "HoTen", "Lop", "MaDe", "Diem", "ChiTiet"]);
+        kqSheet.appendRow([ payload.thoiGian, reqPhong, payload.maHS, payload.hoTen, payload.lop, reqMaDe, finalScore, finalChiTietStr ]);
+        SpreadsheetApp.flush(); 
+      } catch (e) {
+        throw new Error("Hệ thống nghẽn mạng do quá đông, vui lòng thử lại!");
+      } finally { lock.releaseLock(); }
+      
+      return output.setContent(JSON.stringify({status: "success", finalScore: finalScore}));
+    }
 
-        function startTimer() {
-            let display = document.getElementById("time-display");
-            timerInterval = setInterval(() => { 
-                timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
-                if (timeRemaining <= 0) { 
-                    clearInterval(timerInterval); display.innerText = "00:00";
-                    alert("Đã hết giờ làm bài! Hệ thống tự động nộp bài."); submitExam(true); 
-                } else {
-                    let m = Math.floor(timeRemaining / 60); let s = timeRemaining % 60; 
-                    display.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`; 
-                    if(timeRemaining <= 60) display.style.backgroundColor = "#c0392b";
-                }
-            }, 1000);
+    if (action === "set_state") {
+      var sheet = getOrCreateSheet(ss, TAB_PHONG_THI, ["MaPhong", "TenDotKiemTra", "DoiTuong", "ThoiGian", "TrangThai", "ThoiGianMo"]);
+      sheet.getRange(1, 6).setValue("ThoiGianMo");
+      var data = sheet.getDataRange().getValues(); var found = false; var reqPhong = String(payload.maPhong).trim();
+      var nowTime = new Date().getTime();
+      
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]).trim() === reqPhong) {
+          sheet.getRange(i + 1, 5).setValue(payload.trangThai); 
+          if(payload.doiTuong) sheet.getRange(i + 1, 3).setValue(payload.doiTuong);
+          if(payload.tenDotKiemTra) sheet.getRange(i + 1, 2).setValue(payload.tenDotKiemTra); 
+          if(payload.thoiGianLamBai) sheet.getRange(i + 1, 4).setValue(payload.thoiGianLamBai);
+          if(payload.trangThai === "MO_PHONG") sheet.getRange(i + 1, 6).setValue(nowTime);
+          found = true; break;
         }
-        
-        function theoDoiGianLan() { 
-            document.addEventListener("visibilitychange", () => { 
-                if (!document.hidden && exactClientEndTime > 0 && !isSubmitted && document.getElementById("exam-screen").style.display === "block") {
-                    timeRemaining = Math.floor((exactClientEndTime - Date.now()) / 1000);
-                    if (timeRemaining <= 0) {
-                        clearInterval(timerInterval);
-                        alert("Đã hết giờ làm bài trong lúc em rời khỏi màn hình! Hệ thống tự động nộp bài.");
-                        submitExam(true); return;
-                    }
-                }
-                if (document.hidden && !isSubmitted && document.getElementById("exam-screen").style.display === "block") { 
-                    cheatCount++; document.getElementById("cheat-count").innerText = cheatCount; 
-                    if(cheatCount === 1) showAlert("⚠️ CẢNH BÁO (1/3)", "Em vừa chuyển sang ứng dụng khác. Nếu vi phạm 3 lần, bài sẽ tự động nộp!");
-                    else if(cheatCount === 2) showAlert("⚠️ CẢNH BÁO CUỐI (2/3)", "Đây là lần cảnh báo cuối. Rời màn hình lần nữa, bài sẽ tự động nộp bài lập tức!");
-                    else if(cheatCount >= 3) { showAlert("🚨 ĐÌNH CHỈ THI", "Em đã vi phạm quy chế 3 lần. Hệ thống đang tự động thu bài!", true); setTimeout(() => submitExam(true), 2000); }
-                } 
-            }); 
-        }
-    </script>
-</body>
-</html>
+      }
+      if (!found) { var tMo = (payload.trangThai === "MO_PHONG") ? nowTime : ""; sheet.appendRow([reqPhong, payload.tenDotKiemTra, payload.doiTuong, payload.thoiGianLamBai, payload.trangThai, tMo]); }
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"}));
+    }
+    
+    if (action === "delete_room") { 
+      var roomToDelete = String(payload.maPhong).trim();
+      updateSheetData(ss, TAB_PHONG_THI, function(r) { return String(r[0]).trim() !== roomToDelete; });
+      updateSheetData(ss, TAB_DE_THI, function(r) { return String(r[0]).trim() !== roomToDelete; });
+      updateSheetData(ss, TAB_KET_QUA, function(r) { return String(r[1]).trim() !== roomToDelete; }); 
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "delete_room_results") { 
+      var roomToDelete = String(payload.maPhong).trim();
+      updateSheetData(ss, TAB_KET_QUA, function(r) { return String(r[1]).trim() !== roomToDelete; });
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "save_to_bank") { 
+      var sheet = getOrCreateSheet(ss, TAB_NGAN_HANG, ["ID", "BaiHoc", "Phan", "MucDo", "NoiDung", "A", "B", "C", "D", "DapAnDung", "LoiGiai"]); 
+      var rows = payload.cauHoiList.map(function(q) { return ["Q_" + new Date().getTime() + "_" + Math.floor(Math.random()*1000), payload.baiHoc, q.Phan, q.MucDo, q.NoiDung, q.DapAnA, q.DapAnB, q.DapAnC, q.DapAnD, q.DapAnDung, q.LoiGiai || ""]; }); 
+      sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 11).setValues(rows); SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "delete_bank_question") { 
+      var idToDelete = String(payload.id).trim(); updateSheetData(ss, TAB_NGAN_HANG, function(r) { return String(r[0]).trim() !== idToDelete; });
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+
+    if (action === "update_bank_question") { 
+      var targetId = String(payload.id).trim();
+      updateSheetData(ss, TAB_NGAN_HANG, function(r) { return true; }, function(r) { if (String(r[0]).trim() === targetId) { return [r[0], payload.baiHoc, payload.phan, payload.mucDo, payload.noiDung, payload.A, payload.B, payload.C, payload.D, payload.dapAnDung, payload.loiGiai || ""]; } return r; });
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "delete_bank_batch") { 
+      if (payload.deleteAll) { updateSheetData(ss, TAB_NGAN_HANG, function(r) { return false; }); } 
+      else { updateSheetData(ss, TAB_NGAN_HANG, function(r) { var isMatch = true; if (payload.baiHoc && String(r[1]).trim() !== String(payload.baiHoc).trim()) isMatch = false; if (payload.phan && String(r[2]).trim() !== String(payload.phan).trim()) isMatch = false; if (payload.mucDo && String(r[3]).trim() !== String(payload.mucDo).trim()) isMatch = false; return !isMatch; }); } 
+      SpreadsheetApp.flush(); return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "reset_pass") { 
+      var targetMaHS = String(payload.maHS).trim();
+      updateSheetData(ss, TAB_HOC_SINH, function(r) { return true; }, function(r) { if(String(r[0]).trim() === targetMaHS) { r[3] = "123456"; } return r; });
+      return output.setContent(JSON.stringify({status: "success"})); 
+    }
+    
+    if (action === "pick_from_bank") {
+      var sheet = ss.getSheetByName(TAB_NGAN_HANG); if (!sheet) return output.setContent(JSON.stringify({status: "success", data: []}));
+      var data = sheet.getDataRange().getValues(); var result = [];
+      payload.maTran.forEach(function(mt) {
+        var match = [];
+        for (var i = 1; i < data.length; i++) { if (data[i][1] == mt.baiHoc && data[i][2] == mt.phan && data[i][3] == mt.mucDo) { match.push({ CauSo: "", Phan: data[i][2], MucDo: data[i][3], NoiDung: data[i][4], DapAnA: data[i][5], DapAnB: data[i][6], DapAnC: data[i][7], DapAnD: data[i][8], DapAnDung: data[i][9], LoiGiai: data[i][10] || "" }); } }
+        for (var k = match.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); var temp = match[k]; match[k] = match[j]; match[j] = temp; }
+        result = result.concat(match.slice(0, mt.soLuong));
+      });
+      return output.setContent(JSON.stringify({status: "success", data: result}));
+    }
+
+    return output.setContent(JSON.stringify({status: "error", message: "Hành động không hợp lệ"}));
+  } catch(err) { return output.setContent(JSON.stringify({status: "error", message: "POST Lỗi Hệ Thống: " + err.message})); }
+}
